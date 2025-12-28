@@ -7,7 +7,7 @@ FROM jrottenberg/ffmpeg:4.4-alpine
 RUN apk add --no-cache \
     python3 \
     py3-pip \
-    && pip3 install --no-cache-dir --break-system-packages \
+    && pip3 install --no-cache-dir \
     runpod==1.7.6 \
     requests==2.32.3
 

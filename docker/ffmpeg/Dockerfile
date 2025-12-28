@@ -1,13 +1,15 @@
 # ClipForge FFmpeg Processing Service
 # Optimized for RunPod Serverless GPU instances
 
-FROM jrottenberg/ffmpeg:4.4-alpine
+FROM python:3.11-slim
 
-# Install Python and required packages
-RUN apk add --no-cache \
-    python3 \
-    py3-pip \
-    && pip3 install --no-cache-dir \
+# Install FFmpeg and required system dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip install --no-cache-dir \
     runpod==1.7.6 \
     requests==2.32.3
 

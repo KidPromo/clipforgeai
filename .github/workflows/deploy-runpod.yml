@@ -1,0 +1,58 @@
+name: Build and Push FFmpeg Docker Image
+
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/ffmpeg/**'
+      - '.github/workflows/deploy-runpod.yml'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/clipforge-ffmpeg
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix={{branch}}-
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./docker/ffmpeg
+          file: ./docker/ffmpeg/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Output image name
+        run: |
+          echo "✅ Docker image built and pushed successfully!"
+          echo "📦 Image: ${{ secrets.DOCKER_USERNAME }}/clipforge-ffmpeg:latest"
+          echo ""
+          echo "🚀 Next steps:"
+          echo "1. Go to RunPod.io → Serverless → Endpoints"
+          echo "2. Create new endpoint"
+          echo "3. Use image: ${{ secrets.DOCKER_USERNAME }}/clipforge-ffmpeg:latest"
+          echo "4. Copy endpoint ID and add to Cloudflare secrets"
